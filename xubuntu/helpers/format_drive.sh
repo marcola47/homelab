@@ -27,9 +27,16 @@ LABEL="$2"
 # Require root privileges.
 [[ $EUID -eq 0 ]] || die "Run with sudo."
 
+FORMAT_USER="${SUDO_USER:-}"
+[[ -n "$FORMAT_USER" && "$FORMAT_USER" != "root" ]] ||
+    die "Run this script with sudo from the user who should own the disk."
+id "$FORMAT_USER" >/dev/null 2>&1 ||
+    die "Cannot find the invoking user account: $FORMAT_USER"
+FORMAT_GROUP="$(id -gn "$FORMAT_USER")"
+
 # Check required utilities.
 for cmd in lsblk findmnt swapon wipefs parted \
-           partprobe udevadm umount swapoff mkfs.btrfs; do
+           partprobe udevadm mount mountpoint umount swapoff mkfs.btrfs; do
     command -v "$cmd" >/dev/null 2>&1 ||
         die "Required command not found: $cmd"
 done
@@ -126,8 +133,25 @@ echo "Formatting $PARTITION as Btrfs, label $LABEL..."
 wipefs --all --force "$PARTITION"
 mkfs.btrfs --force -L "$LABEL" "$PARTITION"
 
+TEMP_MOUNT="$(mktemp -d)"
+cleanup_temp_mount() {
+    if mountpoint -q "$TEMP_MOUNT"; then
+        umount "$TEMP_MOUNT"
+    fi
+    rmdir "$TEMP_MOUNT"
+}
+trap cleanup_temp_mount EXIT
+
+mount "$PARTITION" "$TEMP_MOUNT"
+chown "$FORMAT_USER:$FORMAT_GROUP" "$TEMP_MOUNT"
+chmod 0755 "$TEMP_MOUNT"
+umount "$TEMP_MOUNT"
+rmdir "$TEMP_MOUNT"
+trap - EXIT
+
 echo
 echo "Disk formatted successfully!"
+echo "Filesystem root is writable by $FORMAT_USER; root retains full access."
 lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINTS "$DISK"
 echo
 echo "Partition: $PARTITION"
