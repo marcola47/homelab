@@ -17,6 +17,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # Keep scripts in dependency order; add new setup scripts to this list.
 scripts=(
     env.sh
+    ssh-server.sh
     docker.sh
     sunshine.sh
     desktop.sh
