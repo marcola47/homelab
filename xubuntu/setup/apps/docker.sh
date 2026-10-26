@@ -129,6 +129,10 @@ iptables -w -F HOMELAB-LAN-PORTS
 iptables -w -C DOCKER-USER -j HOMELAB-LAN-PORTS 2>/dev/null ||
     iptables -w -I DOCKER-USER 1 -j HOMELAB-LAN-PORTS
 
+iptables -w -A HOMELAB-LAN-PORTS \
+    -m conntrack --ctstate ESTABLISHED,RELATED \
+    -j ACCEPT
+
 for port_protocol in "tcp 8096" "udp 7359" "tcp 2283"; do
     read -r protocol port <<< "$port_protocol"
 
@@ -150,6 +154,10 @@ if ip6tables -w -nL DOCKER-USER >/dev/null 2>&1; then
     ip6tables -w -F HOMELAB-LAN-PORTS
     ip6tables -w -C DOCKER-USER -j HOMELAB-LAN-PORTS 2>/dev/null ||
         ip6tables -w -I DOCKER-USER 1 -j HOMELAB-LAN-PORTS
+
+    ip6tables -w -A HOMELAB-LAN-PORTS \
+        -m conntrack --ctstate ESTABLISHED,RELATED \
+        -j ACCEPT
 
     for port_protocol in "tcp 8096" "udp 7359" "tcp 2283"; do
         read -r protocol port <<< "$port_protocol"

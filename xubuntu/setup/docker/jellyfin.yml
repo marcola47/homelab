@@ -10,8 +10,8 @@ services:
       - /home/marcola/.jellyfin/config:/config
       - /home/marcola/.jellyfin/cache:/cache
       - type: bind
-        source: /srv/storage/jellyfin/libraries/_default/animes
-        target: /media/animes
+        source: /srv/storage/jellyfin/libraries/_default/anime
+        target: /media/anime
       - type: bind
         source: /srv/storage/jellyfin/libraries/_default/movies
         target: /media/movies
