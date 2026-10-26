@@ -34,5 +34,4 @@ if ($sshClient.State -ne 'Installed') {
 }
 
 Write-Host 'SSHFS-Win and WinFsp are installed.'
-Write-Host 'Map a Linux home directory with: net use X: \\sshfs\<linux-user>@<linux-host>'
-Write-Host 'Map an absolute Linux path with: net use X: \\sshfs.r\<linux-user>@<linux-host>\home\<linux-user>'
+Write-Host 'Map the sever path with: net use X: \\sshfs.r\marcola@marcola-server\srv\storage /persistent:yes'

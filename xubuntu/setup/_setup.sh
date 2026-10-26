@@ -18,6 +18,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 scripts=(
     env.sh
     ssh-server.sh
+    mergerfs.sh
     docker.sh
     sunshine.sh
     desktop.sh
