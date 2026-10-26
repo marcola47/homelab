@@ -54,6 +54,7 @@ run_scripts() {
 
 run_scripts "${os_scripts[@]}"
 run_scripts "${app_scripts[@]}"
+mkdir -p "$HOME/.jellyfin/config" "$HOME/.jellyfin/cache" "$HOME/.immich"
 
 for compose_file in "${docker_compose_files[@]}"; do
     compose_path="$script_dir/$compose_file"
