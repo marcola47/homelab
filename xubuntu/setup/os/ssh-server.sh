@@ -40,6 +40,8 @@ sudo ufw --force delete deny 22/tcp >/dev/null 2>&1 || true
 
 sudo ufw insert 1 allow from 192.168.0.0/24 to any port 22 proto tcp comment 'OpenSSH from LAN'
 sudo ufw insert 2 deny 22/tcp comment 'Deny SSH outside LAN'
+sudo ufw allow 80/tcp comment 'HTTP'
+sudo ufw allow 443/tcp comment 'HTTPS'
 sudo ufw --force enable
 sudo ufw reload
 

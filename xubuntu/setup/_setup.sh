@@ -14,29 +14,59 @@ fi
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-# Keep scripts in dependency order; add new setup scripts to this list.
-scripts=(
-    env.sh
-    ssh-server.sh
-    mergerfs.sh
-    docker.sh
-    sunshine.sh
-    desktop.sh
-    keyd.sh
+# Keep each group in dependency order.
+os_scripts=(
+    os/env.sh
+    os/ssh-server.sh
+    os/btrfs.sh
+    os/mergerfs.sh
+    os/desktop.sh
+    os/keyd.sh
 )
 
-for script in "${scripts[@]}"; do
-    script_path="$script_dir/$script"
+app_scripts=(
+    apps/docker.sh
+    apps/nginx.sh
+    apps/sunshine.sh
+)
 
-    if [[ ! -f "$script_path" ]]; then
-        echo "ERROR: Setup script not found: $script_path" >&2
+docker_compose_files=(
+    docker/immich.yml
+    docker/jellyfin.yml
+)
+
+run_scripts() {
+    local script script_path
+
+    for script in "$@"; do
+        script_path="$script_dir/$script"
+
+        if [[ ! -f "$script_path" ]]; then
+            echo "ERROR: Setup script not found: $script_path" >&2
+            exit 1
+        fi
+
+        echo
+        echo "==> Running $script..."
+        bash "$script_path"
+    done
+}
+
+run_scripts "${os_scripts[@]}"
+run_scripts "${app_scripts[@]}"
+
+for compose_file in "${docker_compose_files[@]}"; do
+    compose_path="$script_dir/$compose_file"
+
+    if [[ ! -f "$compose_path" ]]; then
+        echo "ERROR: Docker Compose file not found: $compose_path" >&2
         exit 1
     fi
 
     echo
-    echo "==> Running $script..."
-    bash "$script_path"
+    echo "==> Starting Docker Compose project $compose_file..."
+    sudo docker compose -f "$compose_path" up -d
 done
 
 echo
-echo "All setup scripts completed successfully."
+echo "All setup scripts and Docker Compose projects completed successfully."
