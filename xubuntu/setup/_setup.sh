@@ -16,6 +16,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # Keep each group in dependency order.
 os_scripts=(
+    os/install-helpers.sh
     os/env.sh
     os/ssh-server.sh
     os/btrfs.sh
