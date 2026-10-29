@@ -1,43 +1,40 @@
 from pathlib import Path
 
-from encoding.types.gpu_preset import GpuPreset
 from encoding.types.sample_comparison import SampleComparison
 
 from .bitrate import bitrate
 from .encode_sample import encode_sample
-from .settings import SAMPLE_COUNT
+from .settings import SAMPLE_COUNT, VMAF_MODEL, VMAF_NEG_MODEL
 from .vmaf_score import vmaf_score
 
 
 def compare_samples(
     source: Path,
     references: list[tuple[str, Path]],
-    preset: GpuPreset,
     quality: int,
     output_directory: Path,
-    use_neg_model: bool,
 ) -> list[SampleComparison]:
     comparisons: list[SampleComparison] = []
     for sample_number, (timestamp, reference) in enumerate(references, start=1):
         output = output_directory / f"sample_{sample_number:02d}.mkv"
-        encode_sample(source, output, timestamp, quality, preset)
+        encode_sample(source, output, timestamp, quality)
 
-        mean_score, p05_score = vmaf_score(
-            reference, output, use_neg_model=use_neg_model
-        )
+        mean_score = vmaf_score(reference, output, VMAF_MODEL)
+        neg_mean_score = vmaf_score(reference, output, VMAF_NEG_MODEL)
+        combined_score = (mean_score + 2 * neg_mean_score) / 3
         comparisons.append(
             SampleComparison(
                 sample_number=sample_number,
                 timestamp=timestamp,
                 vmaf_mean=mean_score,
-                vmaf_p05=p05_score,
-                combined_score=(mean_score + p05_score) / 2,
+                vmaf_neg_mean=neg_mean_score,
+                combined_score=combined_score,
                 bitrate_bps=bitrate(output),
             )
         )
 
         print(
-            f"Sample {sample_number}/{SAMPLE_COUNT}: mean={mean_score:.3f}, "
-            f"p05={p05_score:.3f}, combined={(mean_score + p05_score) / 2:.3f}"
+            f"Sample {sample_number}/{SAMPLE_COUNT}: VMAF mean={mean_score:.3f}, "
+            f"NEG mean={neg_mean_score:.3f}; combined={combined_score:.3f}"
         )
     return comparisons

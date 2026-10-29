@@ -3,15 +3,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from .percentile import percentile
-from .settings import VMAF_DEFAULT_MODEL, VMAF_NEG_MODEL
 
-
-def vmaf_score(
-    reference: Path, distorted: Path, use_neg_model: bool = False
-) -> tuple[float, float]:
-    model = VMAF_NEG_MODEL if use_neg_model else VMAF_DEFAULT_MODEL
-
+def vmaf_score(reference: Path, distorted: Path, model: str) -> float:
     with tempfile.TemporaryDirectory(prefix="encoding-vmaf-") as log_directory:
         log_path = Path(log_directory) / "vmaf.json"
         filter_graph = (
@@ -53,18 +46,10 @@ def vmaf_score(
 
         try:
             result = json.loads(log_path.read_text(encoding="utf-8"))
-            frame_scores = [
-                float(frame["metrics"]["vmaf"])
-                for frame in result["frames"]
-                if "vmaf" in frame["metrics"]
-            ]
             mean_score = float(result["pooled_metrics"]["vmaf"]["mean"])
         except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
             raise RuntimeError(
                 f"Could not parse per-frame VMAF results: {error}"
             ) from error
 
-        if not frame_scores:
-            raise RuntimeError("VMAF JSON log contains no per-frame VMAF scores.")
-
-        return mean_score, percentile(frame_scores, 5)
+        return mean_score

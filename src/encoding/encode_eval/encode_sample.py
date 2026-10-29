@@ -3,7 +3,6 @@ from pathlib import Path
 
 from encoding.helpers.encoding import nvenc_video_args
 from encoding.helpers.tracks import get_audio_args, subtitle_args
-from encoding.types.gpu_preset import GpuPreset
 
 from .settings import SAMPLE_DURATION_SECONDS
 
@@ -13,7 +12,6 @@ def encode_sample(
     output: Path,
     timestamp: str,
     cq: int,
-    preset: GpuPreset,
 ) -> None:
     args = [
         "-y",
@@ -31,7 +29,7 @@ def encode_sample(
         "0:v:0",
         "-map",
         "0:a?",
-        *nvenc_video_args(cq, preset),
+        *nvenc_video_args(cq),
     ]
     args += get_audio_args(source) + subtitle_args(source) + [str(output)]
     print(f"\nEncoding sample: {output}")

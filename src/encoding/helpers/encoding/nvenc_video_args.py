@@ -1,7 +1,7 @@
-from encoding.types.gpu_preset import GpuPreset
+ENCODING_PROFILE = "AV1 NVENC p7 UHQ"
 
 
-def nvenc_video_args(cq: int, preset: GpuPreset) -> list[str]:
+def nvenc_video_args(cq: int) -> list[str]:
     return [
         "-c:v",
         "av1_nvenc",
@@ -24,9 +24,9 @@ def nvenc_video_args(cq: int, preset: GpuPreset) -> list[str]:
         "-multipass",
         "fullres",
         "-spatial-aq",
-        str(int(preset.spatial_aq)),
+        "1",
         "-temporal-aq",
-        str(int(preset.temporal_aq)),
+        "1",
         "-aq-strength",
-        str(preset.aq_strength),
+        "3",
     ]

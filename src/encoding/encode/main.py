@@ -4,9 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from encoding.encode_eval.safe_name import safe_name
-from encoding.helpers.filesystem import get_video_files, resolve_dir
-from encoding.types.gpu_preset import GPU_PRESETS
+from encoding.helpers.encoding import ENCODING_PROFILE
+from encoding.helpers.filesystem import get_video_files, resolve_dir, safe_name
 
 from .add_bitrate_metadata import add_bitrate_metadata
 from .ffmpeg_args import ffmpeg_args
@@ -25,17 +24,6 @@ def main() -> int:
     try:
         root = resolve_dir(directory)
         assert root is not None
-
-        print("GPU encoding presets:")
-
-        for key, preset in GPU_PRESETS.items():
-            print(f"  {key}. {preset.label}")
-        preset_key = input("Select preset (default: 3): ").strip() or "3"
-
-        if preset_key not in GPU_PRESETS:
-            raise ValueError("Invalid preset. Please enter a number from 1 to 4.")
-
-        preset = GPU_PRESETS[preset_key]
 
         cq_text = (
             input("Enter quality value (lower = better quality, default: 32): ").strip()
@@ -98,10 +86,10 @@ def main() -> int:
 
             print(f"Starting: {source}\nOutput:   {output}")
             print(f"Audio: Opus 128k VBR stereo; CQ: {cq}")
-            print(f"Pipeline: NVENC AV1 | {preset.label} | GOP 240")
+            print(f"Profile: {ENCODING_PROFILE} | GOP 240")
 
             code = subprocess.run(
-                ["ffmpeg.exe", *ffmpeg_args(source, output, cq, preset)]
+                ["ffmpeg.exe", *ffmpeg_args(source, output, cq)]
             ).returncode
 
             if code:

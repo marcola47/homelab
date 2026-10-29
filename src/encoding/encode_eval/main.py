@@ -1,7 +1,6 @@
 import argparse
 
 from encoding.helpers.filesystem import get_video_files, resolve_dir
-from encoding.types.gpu_preset import GPU_PRESETS
 
 from .evaluate_source import evaluate_source
 
@@ -20,17 +19,6 @@ def main() -> int:
         root = resolve_dir(directory)
         assert root is not None
 
-        print("Evaluation presets:")
-        print("  0. Compare Digital, Animation, and Film")
-
-        for key, preset in GPU_PRESETS.items():
-            print(f"  {key}. {preset.label}")
-
-        preset_selection = input("Select preset (default: 3): ").strip() or "3"
-
-        if preset_selection != "0" and preset_selection not in GPU_PRESETS:
-            raise ValueError("Invalid preset. Please enter 0 or a number from 1 to 4.")
-
         sources = get_video_files(
             root,
             (".mkv", ".mp4", ".avi"),
@@ -42,7 +30,7 @@ def main() -> int:
 
         for source in sources:
             print(f"\nSource: {source}")
-            evaluate_source(source, preset_selection)
+            evaluate_source(source)
 
         print("\nAll evaluations completed successfully.")
     except Exception as error:
