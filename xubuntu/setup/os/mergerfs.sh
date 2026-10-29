@@ -37,6 +37,26 @@ ensure_directory() {
 	fi
 }
 
+unmount_if_mounted() {
+	local path="$1"
+	local fstype
+
+	if ! findmnt -rn -M "$path" >/dev/null 2>&1; then
+		return
+	fi
+
+	fstype="$(findmnt -nro FSTYPE -M "$path")"
+	if mountpoint -q "$path"; then
+		echo "Unmounting existing $fstype mount at $path."
+		sudo umount -- "$path" || die "Could not unmount $path; check for processes using it."
+	elif [[ "$path" == "/srv/storage" && "$fstype" == "fuse.mergerfs" ]]; then
+		echo "Detaching inaccessible stale mergerfs mount at $path."
+		sudo umount -l -- "$path" || die "Could not detach stale mergerfs mount at $path."
+	else
+		die "Mount table contains an inaccessible $fstype mount at $path."
+	fi
+}
+
 if [[ $EUID -eq 0 ]]; then
 	die "Run this script as your normal user, not root."
 fi
@@ -146,7 +166,13 @@ done
 
 sudo apt install -y mergerfs attr
 ensure_directory "$mount_root"
+unmount_if_mounted /srv/storage
 ensure_directory /srv/storage
+for label in "${labels[@]}"; do
+	if [[ -n "${detected_uuids[$label]+x}" ]]; then
+		unmount_if_mounted "$mount_root/$label"
+	fi
+done
 
 fstab_tmp="$(mktemp)"
 trap 'rm -f "$fstab_tmp"' EXIT
