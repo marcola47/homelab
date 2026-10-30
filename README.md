@@ -6,3 +6,10 @@ The encoding tools use FFmpeg and ffprobe.
 - `uv run encode_eval` creates 10-second samples and compares them with VMAF.
   Both tools use the same AV1 NVENC `p7` / `uhq` encoding profile. Evaluations
   report five samples and their average for each configured CQ target.
+- Encodes remain in MKV. Phone-video rotation metadata is detected with ffprobe,
+  applied to CUDA frames before AV1 encoding, and reset to zero to prevent a
+  second rotation on playback.
+
+## TO-DO:
+
+Turn this project into prefect flows
